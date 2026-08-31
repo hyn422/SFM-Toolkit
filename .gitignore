@@ -1,0 +1,30 @@
+# --- 二进制 / 打包产物 ---
+*.exe
+*.dll
+*.blob
+node_modules/
+
+# --- 构建临时文件 ---
+sea-build/
+build/
+dist/
+__pycache__/
+*.spec
+*.pyc
+
+# --- 日志 ---
+*.log
+run*.out.*
+run*.err.*
+
+# --- 本地示例 ---
+sample_code.sfml
+
+# --- 操作系统 / 编辑器 ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- 大文件数据库（可选，见下方说明）---
+# ATM10_ID_Database.json

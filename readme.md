@@ -1,0 +1,216 @@
+# SFM 自动化工具集 / SFM Automation Toolkit
+
+一套面向 Minecraft 模组 [SFM（超级工厂管理器）](https://www.mcmod.cn/class/1840.html) 的离线工具，包含：
+
+- **ID 数据库生成器**：扫描 ATM10 整合包，构建物品/流体/化学品 ID 数据库（中英名）
+- **SFM 可视化编程台**：图形化拼装 SFM 程序代码并实时生成，可打包为独立 exe 桌面应用
+
+---
+
+## 中文
+
+### 目录结构
+
+```
+MCwork/
+├── readme.md                      # 本说明文档
+├── ID数据库生成器/                # 工具一：ID 数据库生成器
+│   ├── build_atm10_id_db.py       # 生成脚本（含 AI 说明注释）
+│   ├── build_atm10_id_db.exe      # 打包好的 exe（PyInstaller 单文件）
+│   ├── ID_Data/                   # 原版 1.21.1 官方翻译
+│   │   ├── vanilla_zh_cn.json
+│   │   └── vanilla_en_us.json
+│   └── ATM10_ID_Database.json     # 生成的成品 ID 数据库（82480 条）
+└── SFM编程台/                     # 工具二：SFM 可视化编程台
+    ├── dist/
+    │   └── SFM-Builder.exe        # 编程台桌面版（独立 exe，自带命令行日志窗口）
+    └── server/                    # 编程台源码 / 开发环境
+        ├── index.html             # 网页界面
+        ├── styles.css             # 样式
+        ├── app.js                 # 前端核心逻辑（可视化拼装/代码生成/校验）
+        ├── import-parser.js       # SFM 代码解析器（导入识别）
+        ├── pinyin-pro.js          # 拼音库（联想搜索）
+        ├── items-data.js          # 内嵌紧凑版物品数据库
+        ├── server.mjs / server.cjs# 开发版 / SEA 打包版服务器
+        └── build-sea.mjs          # SEA 打包脚本（生成独立 exe）
+```
+
+> **关于原始数据**：ATM10 整合包（几十 GB 的原始数据源）已从项目目录中移出，保留在
+> `E:\Games\MC\小东西\ATM10_source`。生成脚本通过 `ROOT` 常量指向它。若你重新放置了
+> 整合包，只需修改 `ID数据库生成器\build_atm10_id_db.py` 顶部的 `ROOT` 路径。
+
+### 工具一：ID 数据库生成器
+
+扫描整个 ATM10 整合包并输出 `ATM10_ID_Database.json`，作为编程台的资源检索依据。
+
+**数据来源**：模组 jar 的语言文件/配方/标签/物品模型、KubeJS 脚本、config、FTB 任务、EMI 移除列表、官方原版翻译。
+
+**每条条目格式**：
+
+```json
+{
+  "id": "mekanism:steel_ingot",
+  "namespace": "mekanism",
+  "types": ["item"],
+  "name_zh": "钢锭",
+  "name_en": "Steel Ingot",
+  "sources": ["lang", "data"]
+}
+```
+
+**运行方式**（以下任选其一，在 `ID数据库生成器/` 目录内执行）：
+
+```bash
+# 方式一：直接运行 python 脚本（需 Python 3，无第三方依赖）
+python build_atm10_id_db.py
+
+# 方式二：运行打包好的 exe（无需 Python 环境）
+build_atm10_id_db.exe
+```
+
+> 脚本会自动定位自身所在目录来写入产物、读取原版翻译。唯一的绝对路径是顶部的
+> `ROOT`（指向外部整合包 `E:\Games\MC\小东西\ATM10_source`），改整合包位置时只改这一行。
+
+---
+
+### 工具二：SFM 可视化编程台
+
+图形化拼装 SFM 程序（触发器 / input / output / forget / if 判断），实时生成高亮代码，支持：
+- 物品/流体/化学品按 ID / 中文名 / 英文名 / 拼音首字母联想搜索
+- 复杂语句展示为**流程图摘要**，双击展开**详细编辑器**
+- 粘贴已有 SFM 代码自动识别（注释会保留为语句备注）
+- 正则编辑、标签库、示例模板、合法性校验
+
+**开发模式运行**（在 `SFM编程台/server/` 目录内）：
+
+```bash
+node server.mjs
+# 浏览器访问 http://localhost:4173
+```
+
+**打包为独立 exe（桌面应用）**：
+
+```bash
+cd SFM编程台/server
+node build-sea.mjs
+# 生成上一级 dist\SFM-Builder.exe（自包含，无需 Node 环境）
+```
+
+双击 `SFM编程台\dist\SFM-Builder.exe` 会弹出**命令行日志窗口**，自动启动网页服务，浏览器访问 `http://localhost:4173`；关闭窗口即停止服务。
+
+---
+
+### 重新打包指南
+
+| 目标 | 命令 | 产物 |
+|---|---|---|
+| 数据库生成器 exe | `cd ID数据库生成器 && pip install pyinstaller && python -m PyInstaller --onefile build_atm10_id_db.py` | `ID数据库生成器/build_atm10_id_db.exe` |
+| 编程台 exe | `cd SFM编程台/server && node build-sea.mjs` | `SFM编程台/dist/SFM-Builder.exe` |
+
+> 编程台打包使用 Node 内置 SEA（Single Executable Application），首次需安装 `postject`（`npm install -g postject` 或 `npm install postject`，建议使用 `--registry https://registry.npmmirror.com`）。脚本会自动从环境变量 `POSTJECT_PATH`、本地 `node_modules` 或 npm 全局目录中查找 `postject`。
+
+---
+
+## English
+
+### Directory Layout
+
+```
+MCwork/
+├── readme.md                      # This documentation
+├── ID数据库生成器/                # Tool 1: ID Database Builder
+│   ├── build_atm10_id_db.py       # Builder script (with AI comments)
+│   ├── build_atm10_id_db.exe      # Bundled exe (PyInstaller single-file)
+│   ├── ID_Data/                   # Official 1.21.1 vanilla translations
+│   │   ├── vanilla_zh_cn.json
+│   │   └── vanilla_en_us.json
+│   └── ATM10_ID_Database.json     # Generated DB (82,480 entries)
+└── SFM编程台/                     # Tool 2: Visual SFM Workbench
+    ├── dist/
+    │   └── SFM-Builder.exe        # Desktop build (standalone, with console log window)
+    └── server/                    # Workbench source / dev environment
+        ├── index.html             # Web UI
+        ├── styles.css             # Styles
+        ├── app.js                 # Frontend logic (builder / codegen / validation)
+        ├── import-parser.js       # SFM code parser (paste-to-import)
+        ├── pinyin-pro.js          # Pinyin library (fuzzy search)
+        ├── items-data.js          # Embedded compact item database
+        ├── server.mjs / server.cjs# Dev / SEA-bundled server
+        └── build-sea.mjs          # SEA build script (standalone exe)
+```
+
+> **About the raw data**: the ATM10 modpack (tens of GB of source data) has been moved out
+> of the project tree and now lives at `E:\Games\MC\小东西\ATM10_source`. The builder script
+> points to it via the `ROOT` constant. To change its location, edit `ROOT` at the top of
+> `ID数据库生成器\build_atm10_id_db.py`.
+
+### Tool 1: ID Database Builder
+
+Scans the entire ATM10 modpack and outputs `ATM10_ID_Database.json`, used by the workbench for resource lookup.
+
+**Data sources**: mod jar language files / recipes / tags / item models, KubeJS scripts, configs, FTB quests, EMI removal lists, official vanilla translations.
+
+**Entry format**:
+
+```json
+{
+  "id": "mekanism:steel_ingot",
+  "namespace": "mekanism",
+  "types": ["item"],
+  "name_zh": "钢锭",
+  "name_en": "Steel Ingot",
+  "sources": ["lang", "data"]
+}
+```
+
+**Run** (either; run from inside `ID数据库生成器/`):
+
+```bash
+# Option 1: run the script directly (Python 3, stdlib only)
+python build_atm10_id_db.py
+
+# Option 2: run the bundled exe (no Python required)
+build_atm10_id_db.exe
+```
+
+> The script auto-discovers its own folder to write output and read the vanilla translations.
+> The only absolute path is `ROOT` (points to the external modpack
+> `E:\Games\MC\小东西\ATM10_source`) — change only that line if you relocate the modpack.
+
+---
+
+### Tool 2: Visual SFM Programming Workbench
+
+Visually assemble SFM programs (triggers / input / output / forget / if conditions) with live highlighted code generation. Features:
+- Item/fluid/chemical lookup by ID / Chinese / English / **pinyin initials**
+- Complex statements shown as **compact flow summaries**; double-click to open the **full editor**
+- Paste existing SFM code to auto-import (comments preserved as statement notes)
+- Regex editing, label library, example templates, validation
+
+**Run in dev mode** (from inside `SFM编程台/server/`):
+
+```bash
+node server.mjs
+# open http://localhost:4173
+```
+
+**Package as a standalone desktop exe**:
+
+```bash
+cd SFM编程台/server
+node build-sea.mjs
+# produces ../dist\SFM-Builder.exe (self-contained, no Node needed)
+```
+
+Double-click `SFM编程台\dist\SFM-Builder.exe` → a **console window** opens with logs, the web server starts automatically, open `http://localhost:4173`; close the window to stop.
+
+---
+
+### Re-packaging Guide
+
+| Target | Command | Output |
+|---|---|---|
+| DB builder exe | `cd ID数据库生成器 && pip install pyinstaller && python -m PyInstaller --onefile build_atm10_id_db.py` | `ID数据库生成器/build_atm10_id_db.exe` |
+| Workbench exe | `cd SFM编程台/server && node build-sea.mjs` | `SFM编程台/dist/SFM-Builder.exe` |
+
+> The workbench uses Node's built-in SEA (Single Executable Application). First install `postject` (`npm install -g postject` or `npm install postject`, suggest `--registry https://registry.npmmirror.com`). The script searches `POSTJECT_PATH`, local `node_modules`, or the npm global directory for it.
