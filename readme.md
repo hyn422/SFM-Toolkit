@@ -15,7 +15,6 @@
 ### 目录结构
 
 ```
-```
 readme.md                      # 本说明文档
 id-database-builder/           # 工具一：ID 数据库生成器
 ├── build_atm10_id_db.py       # 生成脚本（含 AI 说明注释）
