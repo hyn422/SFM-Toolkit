@@ -35,7 +35,7 @@ const parserSrc = fs.readFileSync(path.join(__dirname, 'import-parser.js'), 'utf
 eval(appSrc + '\n' + parserSrc + '\n;globalThis.__testParse = { parseSFMLCode, generateCode, normalizeState, render };');
 const { parseSFMLCode, generateCode } = globalThis.__testParse;
 
-const dir = process.argv[2] || 'E:\\Games\\MC\\小东西\\SFM程序';
+const dir = process.argv[2] || process.env.SFM_TEST_DIR || path.join(__dirname, 'samples');
 const files = [];
 function walk(d) {
   for (const e of fs.readdirSync(d, { withFileTypes: true })) {

@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # build_atm10_id_db.py
 # -----------------------------------------------------------------------------
 # PURPOSE
@@ -87,25 +87,38 @@ import zipfile
 # 路径配置 / PATH CONFIG
 # -----------------------------------------------------------------------------
 # 脚本会自动定位自身所在目录作为 SCRIPT_DIR。下列路径均基于 SCRIPT_DIR 生成，
-# 因此整个「ID数据库生成器」文件夹可随意移动位置，无需改动代码。
+# 因此整个 id-database-builder 文件夹可随意移动位置，无需改动代码。
 #
 # The script locates its own directory as SCRIPT_DIR. All paths below are
-# derived from SCRIPT_DIR, so the whole "ID数据库生成器" folder is portable.
+# derived from SCRIPT_DIR, so the whole id-database-builder folder is portable.
 #
-#   ROOT  : 外部整合包根目录 (外部数据源，项目结构外)  / external modpack root
-#   OUT   : 生成的成品数据库 JSON                      / output database JSON
+#   ROOT  : 作为样本的整合包根目录 (外部数据源)  / the sample modpack root
+#   OUT   : 生成的成品数据库 JSON                  / output database JSON
 #   ID_DATA: 原版官方翻译目录 (本工具文件夹内/ID_Data)  / vanilla translations
 # -----------------------------------------------------------------------------
+import os
 import sys
 
 _script_dir = getattr(sys, "frozen", False) and sys.executable or __file__
 SCRIPT_DIR = pathlib.Path(_script_dir).resolve().parent
 
-# 外部数据源：ATM10 整合包已从项目目录移出到磁盘别处。
-# External data source; the ATM10 modpack was moved out of the project tree.
-# 若你重新放置了整合包，只需改这一行。
-# Update this line if you relocate the modpack.
-ROOT = pathlib.Path(r"E:\Games\MC\小东西\ATM10_source")
+# 外部数据源：指向你本地解压的样本整合包根目录。
+# 本工具以开源整合包 ATM10 (https://github.com/AllTheMods/ATM-10) 作为生成样本。
+# External data source: point ROOT to your local extracted sample modpack root.
+# This tool uses the open-source ATM10 pack (https://github.com/AllTheMods/ATM-10).
+# 整合包位置改变了只需改这一行。 Update this line if you relocate the modpack.
+ROOT = pathlib.Path(os.environ.get("ATM10_PACK_DIR", "")) if os.environ.get("ATM10_PACK_DIR") else None
+if ROOT is None:
+    # 未通过环境变量指定时，默认在本脚本上级/同级或用户目录寻找 ATM10 目录；
+    # 若都找不到，请把下面 `ROOT = ...` 一行改成你的实际整合包绝对路径。
+    # Without an env var, search common local locations for an ATM10 folder;
+    # if none found, edit the `ROOT = ...` line below to your real path.
+    _candidates = [
+        SCRIPT_DIR.parent / "ATM10",
+        SCRIPT_DIR.parent.parent / "ATM10",
+        pathlib.Path.home() / "ATM10",
+    ]
+    ROOT = next((c for c in _candidates if c.exists()), pathlib.Path("ATM10"))
 
 # 生成产物：写到本工具文件夹内。
 # Output file lives inside this tool's own folder.

@@ -121,7 +121,7 @@ function main() {
     '--sentinel-fuse', 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2'
   ]);
 
-  // Output the exe to the SFM编程台/dist/ folder (one level above server/)
+  // Output the exe to the sfm-builder/dist/ folder (one level above server/)
   const finalExe = path.join(__dirname, '..', 'dist', 'SFM-Builder.exe');
   fs.mkdirSync(path.dirname(finalExe), { recursive: true });
   fs.copyFileSync(outExe, finalExe);
